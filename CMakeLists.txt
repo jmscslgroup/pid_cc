@@ -51,6 +51,9 @@ file(GLOB ${PROJECT_NAME}_CPP_SOURCES RELATIVE ${PROJECT_SOURCE_DIR} ${PROJECT_S
 add_executable(${PROJECT_NAME}_node
    pid_cc.cpp
    pid_cc_data.cpp
+   rtGetInf.cpp
+   rtGetNaN.cpp
+   rt_nonfinite.cpp
    rosnodeinterface.cpp
    main.cpp
    slros_busmsg_conversion.cpp

@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'pid_cc'.
 //
-// Model version                  : 1.23
+// Model version                  : 1.24
 // Simulink Coder version         : 9.5 (R2021a) 14-Nov-2020
-// C/C++ source code generated on : Fri Apr 16 11:29:32 2021
+// C/C++ source code generated on : Fri Apr 16 15:33:34 2021
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: Generic->Unspecified (assume 32-bit Generic)
@@ -22,37 +22,51 @@
 // Block parameters (default storage)
 P_pid_cc_T pid_cc_P = {
   // Mask Parameter: PIDController_D
-  //  Referenced by: '<S31>/Derivative Gain'
+  //  Referenced by: '<S33>/Derivative Gain'
 
   -0.767669321112438,
 
   // Mask Parameter: PIDController_I
-  //  Referenced by: '<S34>/Integral Gain'
+  //  Referenced by: '<S36>/Integral Gain'
 
   0.00341554788105601,
 
   // Mask Parameter: PIDController_InitialConditionF
-  //  Referenced by: '<S32>/Filter'
+  //  Referenced by: '<S34>/Filter'
 
   0.0,
 
   // Mask Parameter: PIDController_InitialConditio_o
-  //  Referenced by: '<S37>/Integrator'
+  //  Referenced by: '<S39>/Integrator'
 
   0.0,
 
+  // Mask Parameter: PIDController_LowerSaturationLi
+  //  Referenced by:
+  //    '<S46>/Saturation'
+  //    '<S32>/DeadZone'
+
+  -1.5,
+
   // Mask Parameter: PIDController_N
-  //  Referenced by: '<S40>/Filter Coefficient'
+  //  Referenced by: '<S42>/Filter Coefficient'
 
   0.588408355398647,
 
   // Mask Parameter: PIDController_P
-  //  Referenced by: '<S42>/Proportional Gain'
+  //  Referenced by: '<S44>/Proportional Gain'
 
   0.659392661977694,
 
+  // Mask Parameter: PIDController_UpperSaturationLi
+  //  Referenced by:
+  //    '<S46>/Saturation'
+  //    '<S32>/DeadZone'
+
+  1.5,
+
   // Computed Parameter: Out1_Y0
-  //  Referenced by: '<S54>/Out1'
+  //  Referenced by: '<S56>/Out1'
 
   {
     {
@@ -147,7 +161,7 @@ P_pid_cc_T pid_cc_P = {
   },
 
   // Computed Parameter: Out1_Y0_k
-  //  Referenced by: '<S55>/Out1'
+  //  Referenced by: '<S57>/Out1'
 
   {
     0.0                                // Data
@@ -160,6 +174,11 @@ P_pid_cc_T pid_cc_P = {
     0.0                                // Data
   },
 
+  // Expression: 0
+  //  Referenced by: '<S30>/Constant1'
+
+  0.0,
+
   // Expression: 1.5
   //  Referenced by: '<Root>/Saturation'
 
@@ -168,7 +187,17 @@ P_pid_cc_T pid_cc_P = {
   // Expression: -1.5
   //  Referenced by: '<Root>/Saturation'
 
-  -1.5
+  -1.5,
+
+  // Expression: 0
+  //  Referenced by: '<S30>/ZeroGain'
+
+  0.0,
+
+  // Computed Parameter: Memory_InitialCondition
+  //  Referenced by: '<S30>/Memory'
+
+  0
 };
 
 //

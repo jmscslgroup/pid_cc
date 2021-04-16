@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'pid_cc'.
 //
-// Model version                  : 1.23
+// Model version                  : 1.24
 // Simulink Coder version         : 9.5 (R2021a) 14-Nov-2020
-// C/C++ source code generated on : Fri Apr 16 11:29:32 2021
+// C/C++ source code generated on : Fri Apr 16 15:33:34 2021
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: Generic->Unspecified (assume 32-bit Generic)
@@ -118,8 +118,10 @@ void pid_cc_step(void)
 {
   SL_Bus_pid_cc_std_msgs_Float64 b_varargout_2;
   SL_Bus_pid_cc_std_msgs_Float64 rtb_BusAssignment;
-  real_T rtb_Sum;
-  real_T u0;
+  real_T rtb_IntegralGain;
+  real_T rtb_SignPreSat;
+  real_T rtb_ZeroGain;
+  real_T tmp;
   boolean_T b_varargout_1;
   if (rtmIsMajorTimeStep(pid_cc_M)) {
     // set solver stop time
@@ -135,12 +137,12 @@ void pid_cc_step(void)
   if (rtmIsMajorTimeStep(pid_cc_M)) {
     // Outputs for Atomic SubSystem: '<Root>/ref_speed'
     // MATLABSystem: '<S5>/SourceBlock' incorporates:
-    //   Inport: '<S55>/In1'
+    //   Inport: '<S57>/In1'
 
     b_varargout_1 = Sub_pid_cc_26.getLatestMessage(&b_varargout_2);
 
     // Outputs for Enabled SubSystem: '<S5>/Enabled Subsystem' incorporates:
-    //   EnablePort: '<S55>/Enable'
+    //   EnablePort: '<S57>/Enable'
 
     if (b_varargout_1) {
       pid_cc_B.In1_p = b_varargout_2;
@@ -152,12 +154,12 @@ void pid_cc_step(void)
 
     // Outputs for Atomic SubSystem: '<Root>/Subscribe'
     // MATLABSystem: '<S4>/SourceBlock' incorporates:
-    //   Inport: '<S54>/In1'
+    //   Inport: '<S56>/In1'
 
     b_varargout_1 = Sub_pid_cc_10.getLatestMessage(&pid_cc_B.b_varargout_2);
 
     // Outputs for Enabled SubSystem: '<S4>/Enabled Subsystem' incorporates:
-    //   EnablePort: '<S54>/Enable'
+    //   EnablePort: '<S56>/Enable'
 
     if (b_varargout_1) {
       pid_cc_B.In1 = pid_cc_B.b_varargout_2;
@@ -168,38 +170,49 @@ void pid_cc_step(void)
     // End of Outputs for SubSystem: '<Root>/Subscribe'
 
     // Sum: '<Root>/Sum'
-    rtb_Sum = pid_cc_B.In1_p.Data - pid_cc_B.In1.Twist.Linear.X;
+    rtb_IntegralGain = pid_cc_B.In1_p.Data - pid_cc_B.In1.Twist.Linear.X;
 
-    // Gain: '<S42>/Proportional Gain'
-    pid_cc_B.ProportionalGain = pid_cc_P.PIDController_P * rtb_Sum;
+    // Gain: '<S44>/Proportional Gain'
+    pid_cc_B.ProportionalGain = pid_cc_P.PIDController_P * rtb_IntegralGain;
 
-    // Gain: '<S31>/Derivative Gain'
-    pid_cc_B.DerivativeGain = pid_cc_P.PIDController_D * rtb_Sum;
+    // Gain: '<S33>/Derivative Gain'
+    pid_cc_B.DerivativeGain = pid_cc_P.PIDController_D * rtb_IntegralGain;
   }
 
-  // Gain: '<S40>/Filter Coefficient' incorporates:
-  //   Integrator: '<S32>/Filter'
-  //   Sum: '<S32>/SumD'
+  // Gain: '<S42>/Filter Coefficient' incorporates:
+  //   Integrator: '<S34>/Filter'
+  //   Sum: '<S34>/SumD'
 
   pid_cc_B.FilterCoefficient = (pid_cc_B.DerivativeGain - pid_cc_X.Filter_CSTATE)
     * pid_cc_P.PIDController_N;
 
-  // Sum: '<S46>/Sum' incorporates:
-  //   Integrator: '<S37>/Integrator'
+  // Sum: '<S48>/Sum' incorporates:
+  //   Integrator: '<S39>/Integrator'
 
-  u0 = (pid_cc_B.ProportionalGain + pid_cc_X.Integrator_CSTATE) +
+  rtb_SignPreSat = (pid_cc_B.ProportionalGain + pid_cc_X.Integrator_CSTATE) +
     pid_cc_B.FilterCoefficient;
 
+  // Saturate: '<S46>/Saturation'
+  if (rtb_SignPreSat > pid_cc_P.PIDController_UpperSaturationLi) {
+    rtb_ZeroGain = pid_cc_P.PIDController_UpperSaturationLi;
+  } else if (rtb_SignPreSat < pid_cc_P.PIDController_LowerSaturationLi) {
+    rtb_ZeroGain = pid_cc_P.PIDController_LowerSaturationLi;
+  } else {
+    rtb_ZeroGain = rtb_SignPreSat;
+  }
+
+  // End of Saturate: '<S46>/Saturation'
+
   // Saturate: '<Root>/Saturation'
-  if (u0 > pid_cc_P.Saturation_UpperSat) {
+  if (rtb_ZeroGain > pid_cc_P.Saturation_UpperSat) {
     // BusAssignment: '<Root>/Bus Assignment'
     rtb_BusAssignment.Data = pid_cc_P.Saturation_UpperSat;
-  } else if (u0 < pid_cc_P.Saturation_LowerSat) {
+  } else if (rtb_ZeroGain < pid_cc_P.Saturation_LowerSat) {
     // BusAssignment: '<Root>/Bus Assignment'
     rtb_BusAssignment.Data = pid_cc_P.Saturation_LowerSat;
   } else {
     // BusAssignment: '<Root>/Bus Assignment'
-    rtb_BusAssignment.Data = u0;
+    rtb_BusAssignment.Data = rtb_ZeroGain;
   }
 
   // End of Saturate: '<Root>/Saturation'
@@ -209,10 +222,110 @@ void pid_cc_step(void)
   Pub_pid_cc_3.publish(&rtb_BusAssignment);
 
   // End of Outputs for SubSystem: '<Root>/Publish'
-  if (rtmIsMajorTimeStep(pid_cc_M)) {
-    // Gain: '<S34>/Integral Gain'
-    pid_cc_B.IntegralGain = pid_cc_P.PIDController_I * rtb_Sum;
+
+  // Gain: '<S30>/ZeroGain'
+  rtb_ZeroGain = pid_cc_P.ZeroGain_Gain * rtb_SignPreSat;
+
+  // DeadZone: '<S32>/DeadZone'
+  if (rtb_SignPreSat > pid_cc_P.PIDController_UpperSaturationLi) {
+    rtb_SignPreSat -= pid_cc_P.PIDController_UpperSaturationLi;
+  } else if (rtb_SignPreSat >= pid_cc_P.PIDController_LowerSaturationLi) {
+    rtb_SignPreSat = 0.0;
+  } else {
+    rtb_SignPreSat -= pid_cc_P.PIDController_LowerSaturationLi;
   }
+
+  // End of DeadZone: '<S32>/DeadZone'
+  if (rtmIsMajorTimeStep(pid_cc_M)) {
+    // Gain: '<S36>/Integral Gain'
+    rtb_IntegralGain *= pid_cc_P.PIDController_I;
+
+    // Signum: '<S30>/SignPreIntegrator'
+    if (rtb_IntegralGain < 0.0) {
+      // DataTypeConversion: '<S30>/DataTypeConv2'
+      tmp = -1.0;
+    } else if (rtb_IntegralGain > 0.0) {
+      // DataTypeConversion: '<S30>/DataTypeConv2'
+      tmp = 1.0;
+    } else if (rtb_IntegralGain == 0.0) {
+      // DataTypeConversion: '<S30>/DataTypeConv2'
+      tmp = 0.0;
+    } else {
+      // DataTypeConversion: '<S30>/DataTypeConv2'
+      tmp = (rtNaN);
+    }
+
+    // End of Signum: '<S30>/SignPreIntegrator'
+
+    // DataTypeConversion: '<S30>/DataTypeConv2'
+    if (rtIsNaN(tmp)) {
+      tmp = 0.0;
+    } else {
+      tmp = fmod(tmp, 256.0);
+    }
+
+    // DataTypeConversion: '<S30>/DataTypeConv2'
+    pid_cc_B.DataTypeConv2 = static_cast<int8_T>(tmp < 0.0 ? static_cast<int32_T>
+      (static_cast<int8_T>(-static_cast<int8_T>(static_cast<uint8_T>(-tmp)))) :
+      static_cast<int32_T>(static_cast<int8_T>(static_cast<uint8_T>(tmp))));
+  }
+
+  // Signum: '<S30>/SignPreSat'
+  if (rtb_SignPreSat < 0.0) {
+    // DataTypeConversion: '<S30>/DataTypeConv1'
+    tmp = -1.0;
+  } else if (rtb_SignPreSat > 0.0) {
+    // DataTypeConversion: '<S30>/DataTypeConv1'
+    tmp = 1.0;
+  } else if (rtb_SignPreSat == 0.0) {
+    // DataTypeConversion: '<S30>/DataTypeConv1'
+    tmp = 0.0;
+  } else {
+    // DataTypeConversion: '<S30>/DataTypeConv1'
+    tmp = (rtNaN);
+  }
+
+  // End of Signum: '<S30>/SignPreSat'
+
+  // DataTypeConversion: '<S30>/DataTypeConv1'
+  if (rtIsNaN(tmp)) {
+    tmp = 0.0;
+  } else {
+    tmp = fmod(tmp, 256.0);
+  }
+
+  // Logic: '<S30>/AND3' incorporates:
+  //   DataTypeConversion: '<S30>/DataTypeConv1'
+  //   RelationalOperator: '<S30>/Equal1'
+  //   RelationalOperator: '<S30>/NotEqual'
+
+  pid_cc_B.AND3 = ((rtb_ZeroGain != rtb_SignPreSat) && ((tmp < 0.0 ?
+    static_cast<int32_T>(static_cast<int8_T>(-static_cast<int8_T>
+    (static_cast<uint8_T>(-tmp)))) : static_cast<int32_T>(static_cast<int8_T>(
+    static_cast<uint8_T>(tmp)))) == pid_cc_B.DataTypeConv2));
+  if (rtmIsMajorTimeStep(pid_cc_M)) {
+    // Switch: '<S30>/Switch' incorporates:
+    //   Memory: '<S30>/Memory'
+
+    if (pid_cc_DW.Memory_PreviousInput) {
+      // Switch: '<S30>/Switch' incorporates:
+      //   Constant: '<S30>/Constant1'
+
+      pid_cc_B.Switch = pid_cc_P.Constant1_Value;
+    } else {
+      // Switch: '<S30>/Switch'
+      pid_cc_B.Switch = rtb_IntegralGain;
+    }
+
+    // End of Switch: '<S30>/Switch'
+  }
+
+  if (rtmIsMajorTimeStep(pid_cc_M)) {
+    if (rtmIsMajorTimeStep(pid_cc_M)) {
+      // Update for Memory: '<S30>/Memory'
+      pid_cc_DW.Memory_PreviousInput = pid_cc_B.AND3;
+    }
+  }                                    // end MajorTimeStep
 
   if (rtmIsMajorTimeStep(pid_cc_M)) {
     rt_ertODEUpdateContinuousStates(&pid_cc_M->solverInfo);
@@ -244,10 +357,10 @@ void pid_cc_derivatives(void)
   XDot_pid_cc_T *_rtXdot;
   _rtXdot = ((XDot_pid_cc_T *) pid_cc_M->derivs);
 
-  // Derivatives for Integrator: '<S37>/Integrator'
-  _rtXdot->Integrator_CSTATE = pid_cc_B.IntegralGain;
+  // Derivatives for Integrator: '<S39>/Integrator'
+  _rtXdot->Integrator_CSTATE = pid_cc_B.Switch;
 
-  // Derivatives for Integrator: '<S32>/Filter'
+  // Derivatives for Integrator: '<S34>/Filter'
   _rtXdot->Filter_CSTATE = pid_cc_B.FilterCoefficient;
 }
 
@@ -255,6 +368,10 @@ void pid_cc_derivatives(void)
 void pid_cc_initialize(void)
 {
   // Registration code
+
+  // initialize non-finites
+  rt_InitInfAndNaN(sizeof(real_T));
+
   {
     // Setup solver object
     rtsiSetSimTimeStepPtr(&pid_cc_M->solverInfo, &pid_cc_M->Timing.simTimeStep);
@@ -300,16 +417,19 @@ void pid_cc_initialize(void)
     static const char_T tmp_1[12] = { '/', 't', 'i', 'm', 'e', 'd', '_', 'a',
       'c', 'c', 'e', 'l' };
 
-    // InitializeConditions for Integrator: '<S37>/Integrator'
+    // InitializeConditions for Integrator: '<S39>/Integrator'
     pid_cc_X.Integrator_CSTATE = pid_cc_P.PIDController_InitialConditio_o;
 
-    // InitializeConditions for Integrator: '<S32>/Filter'
+    // InitializeConditions for Integrator: '<S34>/Filter'
     pid_cc_X.Filter_CSTATE = pid_cc_P.PIDController_InitialConditionF;
+
+    // InitializeConditions for Memory: '<S30>/Memory'
+    pid_cc_DW.Memory_PreviousInput = pid_cc_P.Memory_InitialCondition;
 
     // SystemInitialize for Atomic SubSystem: '<Root>/ref_speed'
     // SystemInitialize for Enabled SubSystem: '<S5>/Enabled Subsystem'
-    // SystemInitialize for Outport: '<S55>/Out1' incorporates:
-    //   Inport: '<S55>/In1'
+    // SystemInitialize for Outport: '<S57>/Out1' incorporates:
+    //   Inport: '<S57>/In1'
 
     pid_cc_B.In1_p = pid_cc_P.Out1_Y0_k;
 
@@ -331,8 +451,8 @@ void pid_cc_initialize(void)
 
     // SystemInitialize for Atomic SubSystem: '<Root>/Subscribe'
     // SystemInitialize for Enabled SubSystem: '<S4>/Enabled Subsystem'
-    // SystemInitialize for Outport: '<S54>/Out1' incorporates:
-    //   Inport: '<S54>/In1'
+    // SystemInitialize for Outport: '<S56>/Out1' incorporates:
+    //   Inport: '<S56>/In1'
 
     pid_cc_B.In1 = pid_cc_P.Out1_Y0;
 

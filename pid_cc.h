@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'pid_cc'.
 //
-// Model version                  : 1.23
+// Model version                  : 1.24
 // Simulink Coder version         : 9.5 (R2021a) 14-Nov-2020
-// C/C++ source code generated on : Fri Apr 16 11:29:32 2021
+// C/C++ source code generated on : Fri Apr 16 15:33:34 2021
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: Generic->Unspecified (assume 32-bit Generic)
@@ -18,6 +18,7 @@
 //
 #ifndef RTW_HEADER_pid_cc_h_
 #define RTW_HEADER_pid_cc_h_
+#include <math.h>
 #include <string.h>
 #include <stddef.h>
 #include "rtwtypes.h"
@@ -25,6 +26,9 @@
 #include "rtw_solver.h"
 #include "slros_initialize.h"
 #include "pid_cc_types.h"
+#include "rtGetNaN.h"
+#include "rt_nonfinite.h"
+#include "rtGetInf.h"
 
 // Macros for accessing real-time model data structure
 #ifndef rtmGetContStateDisabled
@@ -145,13 +149,15 @@
 
 // Block signals (default storage)
 struct B_pid_cc_T {
-  SL_Bus_pid_cc_geometry_msgs_TwistStamped In1;// '<S54>/In1'
+  SL_Bus_pid_cc_geometry_msgs_TwistStamped In1;// '<S56>/In1'
   SL_Bus_pid_cc_geometry_msgs_TwistStamped b_varargout_2;
-  real_T ProportionalGain;             // '<S42>/Proportional Gain'
-  real_T DerivativeGain;               // '<S31>/Derivative Gain'
-  real_T FilterCoefficient;            // '<S40>/Filter Coefficient'
-  real_T IntegralGain;                 // '<S34>/Integral Gain'
-  SL_Bus_pid_cc_std_msgs_Float64 In1_p;// '<S55>/In1'
+  real_T ProportionalGain;             // '<S44>/Proportional Gain'
+  real_T DerivativeGain;               // '<S33>/Derivative Gain'
+  real_T FilterCoefficient;            // '<S42>/Filter Coefficient'
+  real_T Switch;                       // '<S30>/Switch'
+  SL_Bus_pid_cc_std_msgs_Float64 In1_p;// '<S57>/In1'
+  int8_T DataTypeConv2;                // '<S30>/DataTypeConv2'
+  boolean_T AND3;                      // '<S30>/AND3'
 };
 
 // Block states (default storage) for system '<Root>'
@@ -159,24 +165,25 @@ struct DW_pid_cc_T {
   ros_slroscpp_internal_block_P_T obj; // '<S3>/SinkBlock'
   ros_slroscpp_internal_block_S_T obj_h;// '<S5>/SourceBlock'
   ros_slroscpp_internal_block_S_T obj_n;// '<S4>/SourceBlock'
+  boolean_T Memory_PreviousInput;      // '<S30>/Memory'
 };
 
 // Continuous states (default storage)
 struct X_pid_cc_T {
-  real_T Integrator_CSTATE;            // '<S37>/Integrator'
-  real_T Filter_CSTATE;                // '<S32>/Filter'
+  real_T Integrator_CSTATE;            // '<S39>/Integrator'
+  real_T Filter_CSTATE;                // '<S34>/Filter'
 };
 
 // State derivatives (default storage)
 struct XDot_pid_cc_T {
-  real_T Integrator_CSTATE;            // '<S37>/Integrator'
-  real_T Filter_CSTATE;                // '<S32>/Filter'
+  real_T Integrator_CSTATE;            // '<S39>/Integrator'
+  real_T Filter_CSTATE;                // '<S34>/Filter'
 };
 
 // State disabled
 struct XDis_pid_cc_T {
-  boolean_T Integrator_CSTATE;         // '<S37>/Integrator'
-  boolean_T Filter_CSTATE;             // '<S32>/Filter'
+  boolean_T Integrator_CSTATE;         // '<S39>/Integrator'
+  boolean_T Filter_CSTATE;             // '<S34>/Filter'
 };
 
 #ifndef ODE3_INTG
@@ -193,27 +200,39 @@ struct ODE3_IntgData {
 // Parameters (default storage)
 struct P_pid_cc_T_ {
   real_T PIDController_D;              // Mask Parameter: PIDController_D
-                                          //  Referenced by: '<S31>/Derivative Gain'
+                                          //  Referenced by: '<S33>/Derivative Gain'
 
   real_T PIDController_I;              // Mask Parameter: PIDController_I
-                                          //  Referenced by: '<S34>/Integral Gain'
+                                          //  Referenced by: '<S36>/Integral Gain'
 
   real_T PIDController_InitialConditionF;
                               // Mask Parameter: PIDController_InitialConditionF
-                                 //  Referenced by: '<S32>/Filter'
+                                 //  Referenced by: '<S34>/Filter'
 
   real_T PIDController_InitialConditio_o;
                               // Mask Parameter: PIDController_InitialConditio_o
-                                 //  Referenced by: '<S37>/Integrator'
+                                 //  Referenced by: '<S39>/Integrator'
+
+  real_T PIDController_LowerSaturationLi;
+                              // Mask Parameter: PIDController_LowerSaturationLi
+                                 //  Referenced by:
+                                 //    '<S46>/Saturation'
+                                 //    '<S32>/DeadZone'
 
   real_T PIDController_N;              // Mask Parameter: PIDController_N
-                                          //  Referenced by: '<S40>/Filter Coefficient'
+                                          //  Referenced by: '<S42>/Filter Coefficient'
 
   real_T PIDController_P;              // Mask Parameter: PIDController_P
-                                          //  Referenced by: '<S42>/Proportional Gain'
+                                          //  Referenced by: '<S44>/Proportional Gain'
+
+  real_T PIDController_UpperSaturationLi;
+                              // Mask Parameter: PIDController_UpperSaturationLi
+                                 //  Referenced by:
+                                 //    '<S46>/Saturation'
+                                 //    '<S32>/DeadZone'
 
   SL_Bus_pid_cc_geometry_msgs_TwistStamped Out1_Y0;// Computed Parameter: Out1_Y0
-                                                      //  Referenced by: '<S54>/Out1'
+                                                      //  Referenced by: '<S56>/Out1'
 
   SL_Bus_pid_cc_geometry_msgs_TwistStamped Constant_Value;// Computed Parameter: Constant_Value
                                                              //  Referenced by: '<S4>/Constant'
@@ -222,16 +241,26 @@ struct P_pid_cc_T_ {
                                                      //  Referenced by: '<S1>/Constant'
 
   SL_Bus_pid_cc_std_msgs_Float64 Out1_Y0_k;// Computed Parameter: Out1_Y0_k
-                                              //  Referenced by: '<S55>/Out1'
+                                              //  Referenced by: '<S57>/Out1'
 
   SL_Bus_pid_cc_std_msgs_Float64 Constant_Value_f;// Computed Parameter: Constant_Value_f
                                                      //  Referenced by: '<S5>/Constant'
+
+  real_T Constant1_Value;              // Expression: 0
+                                          //  Referenced by: '<S30>/Constant1'
 
   real_T Saturation_UpperSat;          // Expression: 1.5
                                           //  Referenced by: '<Root>/Saturation'
 
   real_T Saturation_LowerSat;          // Expression: -1.5
                                           //  Referenced by: '<Root>/Saturation'
+
+  real_T ZeroGain_Gain;                // Expression: 0
+                                          //  Referenced by: '<S30>/ZeroGain'
+
+  boolean_T Memory_InitialCondition;
+                                  // Computed Parameter: Memory_InitialCondition
+                                     //  Referenced by: '<S30>/Memory'
 
 };
 
@@ -387,32 +416,34 @@ extern "C" {
 //  '<S27>'  : 'pid_cc/PID Controller/Tsamp - Ngain'
 //  '<S28>'  : 'pid_cc/PID Controller/postSat Signal'
 //  '<S29>'  : 'pid_cc/PID Controller/preSat Signal'
-//  '<S30>'  : 'pid_cc/PID Controller/Anti-windup/Passthrough'
-//  '<S31>'  : 'pid_cc/PID Controller/D Gain/Internal Parameters'
-//  '<S32>'  : 'pid_cc/PID Controller/Filter/Cont. Filter'
-//  '<S33>'  : 'pid_cc/PID Controller/Filter ICs/Internal IC - Filter'
-//  '<S34>'  : 'pid_cc/PID Controller/I Gain/Internal Parameters'
-//  '<S35>'  : 'pid_cc/PID Controller/Ideal P Gain/Passthrough'
-//  '<S36>'  : 'pid_cc/PID Controller/Ideal P Gain Fdbk/Disabled'
-//  '<S37>'  : 'pid_cc/PID Controller/Integrator/Continuous'
-//  '<S38>'  : 'pid_cc/PID Controller/Integrator ICs/Internal IC'
-//  '<S39>'  : 'pid_cc/PID Controller/N Copy/Disabled'
-//  '<S40>'  : 'pid_cc/PID Controller/N Gain/Internal Parameters'
-//  '<S41>'  : 'pid_cc/PID Controller/P Copy/Disabled'
-//  '<S42>'  : 'pid_cc/PID Controller/Parallel P Gain/Internal Parameters'
-//  '<S43>'  : 'pid_cc/PID Controller/Reset Signal/Disabled'
-//  '<S44>'  : 'pid_cc/PID Controller/Saturation/Passthrough'
-//  '<S45>'  : 'pid_cc/PID Controller/Saturation Fdbk/Disabled'
-//  '<S46>'  : 'pid_cc/PID Controller/Sum/Sum_PID'
-//  '<S47>'  : 'pid_cc/PID Controller/Sum Fdbk/Disabled'
-//  '<S48>'  : 'pid_cc/PID Controller/Tracking Mode/Disabled'
-//  '<S49>'  : 'pid_cc/PID Controller/Tracking Mode Sum/Passthrough'
-//  '<S50>'  : 'pid_cc/PID Controller/Tsamp - Integral/Passthrough'
-//  '<S51>'  : 'pid_cc/PID Controller/Tsamp - Ngain/Passthrough'
-//  '<S52>'  : 'pid_cc/PID Controller/postSat Signal/Forward_Path'
-//  '<S53>'  : 'pid_cc/PID Controller/preSat Signal/Forward_Path'
-//  '<S54>'  : 'pid_cc/Subscribe/Enabled Subsystem'
-//  '<S55>'  : 'pid_cc/ref_speed/Enabled Subsystem'
+//  '<S30>'  : 'pid_cc/PID Controller/Anti-windup/Cont. Clamping Parallel'
+//  '<S31>'  : 'pid_cc/PID Controller/Anti-windup/Cont. Clamping Parallel/Dead Zone'
+//  '<S32>'  : 'pid_cc/PID Controller/Anti-windup/Cont. Clamping Parallel/Dead Zone/Enabled'
+//  '<S33>'  : 'pid_cc/PID Controller/D Gain/Internal Parameters'
+//  '<S34>'  : 'pid_cc/PID Controller/Filter/Cont. Filter'
+//  '<S35>'  : 'pid_cc/PID Controller/Filter ICs/Internal IC - Filter'
+//  '<S36>'  : 'pid_cc/PID Controller/I Gain/Internal Parameters'
+//  '<S37>'  : 'pid_cc/PID Controller/Ideal P Gain/Passthrough'
+//  '<S38>'  : 'pid_cc/PID Controller/Ideal P Gain Fdbk/Disabled'
+//  '<S39>'  : 'pid_cc/PID Controller/Integrator/Continuous'
+//  '<S40>'  : 'pid_cc/PID Controller/Integrator ICs/Internal IC'
+//  '<S41>'  : 'pid_cc/PID Controller/N Copy/Disabled'
+//  '<S42>'  : 'pid_cc/PID Controller/N Gain/Internal Parameters'
+//  '<S43>'  : 'pid_cc/PID Controller/P Copy/Disabled'
+//  '<S44>'  : 'pid_cc/PID Controller/Parallel P Gain/Internal Parameters'
+//  '<S45>'  : 'pid_cc/PID Controller/Reset Signal/Disabled'
+//  '<S46>'  : 'pid_cc/PID Controller/Saturation/Enabled'
+//  '<S47>'  : 'pid_cc/PID Controller/Saturation Fdbk/Disabled'
+//  '<S48>'  : 'pid_cc/PID Controller/Sum/Sum_PID'
+//  '<S49>'  : 'pid_cc/PID Controller/Sum Fdbk/Disabled'
+//  '<S50>'  : 'pid_cc/PID Controller/Tracking Mode/Disabled'
+//  '<S51>'  : 'pid_cc/PID Controller/Tracking Mode Sum/Passthrough'
+//  '<S52>'  : 'pid_cc/PID Controller/Tsamp - Integral/Passthrough'
+//  '<S53>'  : 'pid_cc/PID Controller/Tsamp - Ngain/Passthrough'
+//  '<S54>'  : 'pid_cc/PID Controller/postSat Signal/Forward_Path'
+//  '<S55>'  : 'pid_cc/PID Controller/preSat Signal/Forward_Path'
+//  '<S56>'  : 'pid_cc/Subscribe/Enabled Subsystem'
+//  '<S57>'  : 'pid_cc/ref_speed/Enabled Subsystem'
 
 #endif                                 // RTW_HEADER_pid_cc_h_
 

@@ -3,7 +3,7 @@
 // course requirements at degree granting institutions only.  Not for
 // government, commercial, or other organizational use.
 //
-// File: pid_cc_private.h
+// File: rtGetNaN.h
 //
 // Code generated for Simulink model 'pid_cc'.
 //
@@ -16,27 +16,25 @@
 // Code generation objectives: Unspecified
 // Validation result: Not run
 //
-#ifndef RTW_HEADER_pid_cc_private_h_
-#define RTW_HEADER_pid_cc_private_h_
+#ifndef RTW_HEADER_rtGetNaN_h_
+#define RTW_HEADER_rtGetNaN_h_
+#include <stddef.h>
 #include "rtwtypes.h"
+#include "rt_nonfinite.h"
+#ifdef __cplusplus
 
-// Private macros used by the generated code to access rtModel
-#ifndef rtmIsMajorTimeStep
-#define rtmIsMajorTimeStep(rtm)        (((rtm)->Timing.simTimeStep) == MAJOR_TIME_STEP)
+extern "C" {
+
 #endif
 
-#ifndef rtmIsMinorTimeStep
-#define rtmIsMinorTimeStep(rtm)        (((rtm)->Timing.simTimeStep) == MINOR_TIME_STEP)
+  extern real_T rtGetNaN(void);
+  extern real32_T rtGetNaNF(void);
+
+#ifdef __cplusplus
+
+}                                      // extern "C"
 #endif
-
-#ifndef rtmSetTPtr
-#define rtmSetTPtr(rtm, val)           ((rtm)->Timing.t = (val))
-#endif
-
-// private model entry point functions
-extern void pid_cc_derivatives(void);
-
-#endif                                 // RTW_HEADER_pid_cc_private_h_
+#endif                                 // RTW_HEADER_rtGetNaN_h_
 
 //
 // File trailer for generated code.
